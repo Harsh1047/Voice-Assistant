@@ -10,7 +10,7 @@ LANGUAGES = {
     "en-IN": "Indian English", "en-US": "American English",
     "en-GB": "British English", "hi-IN": "Hindi (Devanagari script)",
 }
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-3.6-flash"
 
 
 class Conversation:
