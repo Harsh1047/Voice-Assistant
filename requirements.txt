@@ -1,0 +1,10 @@
+google-genai
+python-dotenv
+SpeechRecognition[audio]
+pywin32
+numpy
+scipy
+noisereduce
+jiwer
+soundfile
+pandas

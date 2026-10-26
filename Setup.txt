@@ -1,0 +1,150 @@
+FINAL PROJECT
+
+This folder is the assembled Python desktop application. The member source folders
+remain unchanged. Bin and the old virtual environment are not needed to run Final.
+
+RUN
+
+From this folder:
+python -m pip install -r requirements.txt
+python app_gui.py
+
+The installed Python on this computer already imported all runtime modules successfully.
+For a fresh environment:
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe app_gui.py
+
+Set the API key in Configuration & Startup Checks, or edit .env in this folder.
+GEMINI_MODEL can set the initial Gemini model. The model field is editable.
+The app requires internet access for Google speech recognition and Gemini.
+Microphone and speech output require working Windows input/output devices.
+Stay quiet during the first second of microphone calibration, then speak.
+Stop cancels a request or playback. Typed prompts skip recording and transcription.
+
+PIPELINE
+
+app_gui.py coordinates the interface and background work.
+listen.py requests audio from audio_processing.py.
+audio_processing.py records the microphone, converts to 16 kHz / 16-bit mono,
+rejects empty or near-silent recordings, reduces noise, trims edge silence,
+limits normalization gain, and saves timestamped raw/processed WAV pairs.
+listen.py sends the processed audio to Google's speech recognition service.
+assistant.py sends the transcript and the last five conversation turns to Gemini.
+If Gemini requests a supported action, windows_tools.py executes it.
+The GUI displays the response and database.py stores the conversation and audio path.
+text_cleaner.py removes common Markdown formatting.
+speech.py reads the answer through Windows SAPI using the selected language/rate/volume.
+New Conversation Session clears the in-memory Gemini context, not saved SQLite history.
+
+The assistant uses the Gemini API. There is no local model training in this application.
+Google speech recognition and Gemini are two separate network services.
+
+FILE GUIDE
+
+Arth:
+audio_processing.py - Microphone access, cancellation checks, audio validation,
+  noise reduction, trimming, normalization and raw/processed WAV saving.
+utils.py - Loads file-based audio, averages channels to mono, resamples it, calls
+  the same processing function, and cleans transcript text.
+pipeline.py - Batch-processes files listed in rawdata/metadata.csv and writes
+  processed_data/train_manifest.csv plus clean WAV files.
+main.py - Standalone recording/preprocessing demonstration. It does not start the GUI.
+
+Parth:
+listen.py - Reusable transcription and record/process/transcribe workflow.
+assistant.py - Gemini requests, prompts, recent conversation context, timeouts,
+  response handling and supported tool dispatch. Also offers a text-only CLI.
+windows_tools.py - Opens Notepad, Calculator or Google in the browser.
+
+Gaurav:
+text_cleaner.py - Removes common Markdown before speech output.
+speech.py - Windows voices, playback, rate/volume settings and cancellation.
+evaluation.py - Computes raw/processed word error rates against a reference and
+  appends results to audio_report.json.
+benchmark.py - Records or loads audio, compares raw/processed transcriptions,
+  measures preprocessing/recognition time and saves the evaluation result.
+
+Harsh:
+app_gui.py - Tkinter interface, controls, settings, worker coordination, status
+  messages, history display, playback and export actions.
+database.py - SQLite records, CSV/JSON exports and portable recording-path lookup.
+startup_checks.py - Checks key presence, actual microphone access, installed voices,
+  available audio outputs and the recordings directory. It does not validate the
+  Gemini key or model against the remote API.
+build_executable.py - Builds a Windows application folder using PyInstaller.
+requirements.txt - Runtime Python dependencies.
+Setup.txt - This guide.
+
+Shared configuration/data:
+.env - Local Gemini credentials and optional GEMINI_MODEL; copied from Harsh.
+.gitignore - Excludes local credentials, Python caches and the virtual environment.
+assistant_history.db - Copied SQLite conversation history: 16 existing records.
+recordings/ - Copied recordings plus future timestamped raw/processed WAV pairs.
+rawdata/metadata.csv - Input filenames and reference transcripts for batch processing.
+rawdata/audio_* - Original sample audio. Four samples are listed in metadata.csv;
+  the other samples are retained but are not automatically included in the batch.
+processed_data/ - Generated audio cleaned to mono 16 kHz PCM_16 WAV.
+processed_data/train_manifest.csv - Processed filenames and cleaned transcripts;
+  the historical filename does not mean a model is being trained.
+audio_report.json - Created when you run evaluation.py or benchmark.py.
+
+Verification:
+test_project.py - Repeatable local tests for processing, module integration, GUI,
+  database/export, conversation history, cancellation and failure handling.
+UNIT_TEST_RESULTS.json - Latest automated-test summary.
+TEST_RESULTS.json - Combined local and live-test evidence from this assembly session.
+test_outputs/ - Test fixtures, exports, generated audio and live-check logs.
+  These files are test evidence and are not required to run the application.
+
+TESTING
+
+python -B test_project.py
+
+16 automated tests passed. They use real local audio processing, SQLite, WAV files
+and Tkinter, with microphone, remote services and speech playback mocked.
+The real GUI opened, loaded 16 history rows and displayed four startup checks.
+All 11 historical audio references resolved to recordings inside Final.
+Batch preprocessing completed successfully for all four metadata-listed samples.
+
+Live checks in this session:
+- Gemini: connection refused (WinError 10061); key/model validity not verified.
+- Google speech recognition: connection refused (WinError 10061).
+- Microphone: the default device was detected, but PortAudio could not open it.
+- Speech output: voices were found, but SAPI exposed zero audio output devices.
+These limitations prevent claiming that live end-to-end voice operation is verified.
+Run the app in your normal Windows session, check the default microphone/speakers
+and microphone permissions, and confirm network access to the two services.
+You can verify the backend first with a typed prompt, then try Start Listening.
+
+Optional commands:
+python main.py
+python assistant.py
+python speech.py
+python pipeline.py
+python benchmark.py
+python evaluation.py
+python benchmark.py --audio rawdata/audio_02.wav --reference "what time is it"
+
+The word error rate report measures transcription differences. It does not prove
+that Gemini's answers are correct. The GUI's displayed response time measures the
+Gemini/tool stage; benchmark.py measures preprocessing and recognition separately.
+
+ASSEMBLY FIXES IN FINAL
+
+- Historical recording paths are relative and resolve within this folder.
+- Microphone opening failures now produce a useful error instead of a NoneType error.
+- Startup checks detect unavailable microphone and audio output devices.
+- File loading/resampling uses SoundFile and SciPy, avoiding the slow Librosa startup
+  observed during testing. Librosa is no longer required by the Final application.
+- Existing raw audio and member source files were preserved.
+
+OPTIONAL WINDOWS BUILD
+
+python -m pip install pyinstaller
+python build_executable.py
+
+Distribute the entire dist/GeminiVoiceAssistant folder.
+Each recipient enters their own key; the builder creates an empty configuration.
+The packaged app stores configuration, history and recordings beside the executable.
+The executable was not built or tested in this session; PyInstaller is not installed.

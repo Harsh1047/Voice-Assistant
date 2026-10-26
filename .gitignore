@@ -1,0 +1,27 @@
+
+# Python virtual environment
+.venv/
+
+# IDE settings
+.idea/
+
+# Python cache
+__pycache__/
+*.pyc
+
+.env
+
+# Runtime data
+recordings/
+assistant_history.db
+audio_report.json
+
+# Generated test evidence
+test_outputs/
+TEST_RESULTS.json
+UNIT_TEST_RESULTS.json
+
+# Application builds
+build/
+dist/
+*.spec
